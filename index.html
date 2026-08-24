@@ -110,9 +110,18 @@
   <div id="final-modal-overlay" class="modal-overlay">
     <div class="modal-content">
         <h2 class="final-title">JEOPARDY FINAL</h2>
-        <h3 id="final-category" class="final-category">Categoría...</h3>
+
+        <!-- Step 1: Choose Final Category -->
+        <div id="final-category-select-view" class="modal-view active">
+            <p class="subtitle" style="font-size: 1.3rem; color: var(--gold); margin-bottom: 1.5rem;">Elige una de las 2 Categorías Finales:</p>
+            <div id="final-category-options" class="final-category-options">
+                <!-- Dynamically populated buttons -->
+            </div>
+        </div>
         
-        <div id="final-wagers-view" class="modal-view active">
+        <!-- Step 2: Secret Wagers -->
+        <div id="final-wagers-view" class="modal-view">
+            <h3 id="final-category" class="final-category">Categoría...</h3>
             <p>Hagan sus apuestas (En secreto)</p>
             <div id="final-wager-inputs" class="final-wager-inputs">
                 <!-- Inputs for each team -->
@@ -120,11 +129,14 @@
             <button class="btn btn-secondary mt-2" onclick="submitFinalWagers()">Revelar Pregunta Final</button>
         </div>
 
+        <!-- Step 3: Question -->
         <div id="final-question-view" class="modal-view">
+            <h3 id="final-selected-category-header" class="final-category">Categoría...</h3>
             <h2 id="final-question-text" class="question-text">Pregunta...</h2>
             <button class="btn btn-secondary mt-2" onclick="showFinalAnswer()">Ver Respuesta</button>
         </div>
 
+        <!-- Step 4: Answer & Scoring -->
         <div id="final-answer-view" class="modal-view">
             <h2 id="final-answer-text" class="answer-text">Respuesta...</h2>
             <p>Marca quién acertó:</p>
@@ -134,6 +146,7 @@
             <button class="btn btn-primary mt-2" onclick="finishGame()">Ver Ganador</button>
         </div>
 
+        <!-- Step 5: Winner Screen -->
         <div id="winner-view" class="modal-view">
             <h1 class="winner-title" id="winner-text">¡Gana el Equipo!</h1>
             <button class="btn btn-primary mt-2" onclick="restartGame(true)">Jugar de Nuevo</button>

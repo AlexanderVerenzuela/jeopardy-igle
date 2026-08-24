@@ -432,6 +432,7 @@ body {
   display: none;
   flex-direction: column;
   align-items: center;
+  width: 100%;
 }
 
 .modal-view.active {
@@ -527,6 +528,37 @@ body {
   font-size: 1.8rem;
   color: #ddd;
   margin-bottom: 1.5rem;
+}
+
+.final-category-options {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+  width: 100%;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.final-cat-card {
+  padding: 1.5rem 2rem;
+  border-radius: 12px;
+  font-size: 1.4rem;
+  border: 2px solid var(--gold);
+  background: rgba(0, 0, 0, 0.6);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 250px;
+}
+
+.final-cat-card:hover {
+  transform: translateY(-5px) scale(1.05);
+  box-shadow: 0 0 25px var(--gold-glow);
+  background: var(--jeopardy-blue);
+}
+
+.final-cat-name {
+  color: var(--gold);
+  font-weight: 900;
 }
 
 .final-wager-inputs {
@@ -660,4 +692,6 @@ body {
   
   .scoring-buttons { flex-direction: column; gap: 0.8rem; }
   .powerups-container { flex-wrap: wrap; }
+  .final-category-options { flex-direction: column; gap: 0.8rem; }
+  .final-cat-card { width: 100%; min-width: unset; padding: 1rem; }
 }

@@ -19,6 +19,7 @@ let pendingPowerUps = { double: false, triple: false, shield: false };
 let activePowerUps = { double: false, triple: false, shield: false };
 
 let playedCards = [];
+let selectedFinalCategoryIndex = 0;
 
 function selectEdition(editionKey) {
     selectedEdition = editionKey;
@@ -51,7 +52,6 @@ function renderTeamInputs() {
     const container = document.getElementById('team-inputs');
     if (!container) return;
     
-    // Save existing input values if any
     const existingValues = [];
     for (let i = 0; i < 8; i++) {
         const input = document.getElementById(`team-name-${i}`);
@@ -443,7 +443,7 @@ function handleScore(teamIdx, isCorrect) {
         amount = currentQuestion.points;
         
         if (isTurn && activePowerUps.shield) {
-            amount = 0; // Shield protects against point deduction
+            amount = 0;
         }
         
         updateScore(teamIdx, -amount);
@@ -481,8 +481,33 @@ function setupFinalJeopardy() {
     gameScreen.classList.remove('active');
     finalModalOverlay.classList.add('active');
     
-    const finalData = gameData[selectedEdition].final;
-    document.getElementById('final-category').innerText = `Categoría: ${finalData.category}`;
+    document.getElementById('final-category-select-view').classList.add('active');
+    document.getElementById('final-wagers-view').classList.remove('active');
+    document.getElementById('final-question-view').classList.remove('active');
+    document.getElementById('final-answer-view').classList.remove('active');
+    document.getElementById('winner-view').classList.remove('active');
+    
+    const finalOptions = gameData[selectedEdition].finalOptions;
+    const catContainer = document.getElementById('final-category-options');
+    catContainer.innerHTML = '';
+    
+    finalOptions.forEach((opt, idx) => {
+        catContainer.innerHTML += `
+            <button class="btn btn-secondary final-cat-card" onclick="selectFinalCategory(${idx})">
+                <span class="final-cat-name">${opt.category}</span>
+            </button>
+        `;
+    });
+}
+
+function selectFinalCategory(catIdx) {
+    selectedFinalCategoryIndex = catIdx;
+    const finalData = gameData[selectedEdition].finalOptions[selectedFinalCategoryIndex];
+    
+    document.getElementById('final-category-select-view').classList.remove('active');
+    document.getElementById('final-wagers-view').classList.add('active');
+    
+    document.getElementById('final-category').innerText = `Categoría Seleccionada: ${finalData.category}`;
     
     const wagersContainer = document.getElementById('final-wager-inputs');
     wagersContainer.innerHTML = '';
@@ -494,6 +519,7 @@ function setupFinalJeopardy() {
             </div>
         `;
     }
+    sounds.dailyDouble();
 }
 
 let finalWagers = [];
@@ -507,7 +533,8 @@ function submitFinalWagers() {
     document.getElementById('final-wagers-view').classList.remove('active');
     document.getElementById('final-question-view').classList.add('active');
     
-    const finalData = gameData[selectedEdition].final;
+    const finalData = gameData[selectedEdition].finalOptions[selectedFinalCategoryIndex];
+    document.getElementById('final-selected-category-header').innerText = `Categoría: ${finalData.category}`;
     document.getElementById('final-question-text').innerText = finalData.question;
     sounds.dailyDouble();
 }
@@ -516,7 +543,7 @@ function showFinalAnswer() {
     document.getElementById('final-question-view').classList.remove('active');
     document.getElementById('final-answer-view').classList.add('active');
     
-    const finalData = gameData[selectedEdition].final;
+    const finalData = gameData[selectedEdition].finalOptions[selectedFinalCategoryIndex];
     document.getElementById('final-answer-text').innerText = finalData.answer;
     
     const checkboxes = document.getElementById('final-scoring-buttons');
