@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jeopardy Game</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Start Screen -->
+  <div id="start-screen" class="screen active">
+    <div class="start-container">
+      <h1 class="game-title">JEOPARDY<br><span id="start-title-edition">BÍBLICO</span></h1>
+      <p class="subtitle">Selecciona la edición y los equipos</p>
+
+      <!-- Edition Selector -->
+      <div class="edition-selector-container">
+        <button type="button" class="edition-card active" id="btn-edition-biblica" onclick="selectEdition('biblica')">
+          <span class="edition-icon">📖</span>
+          <span class="edition-name">Edición Bíblica</span>
+          <span class="edition-desc">Antiguo & Nuevo Testamento, Personajes, Milagros</span>
+        </button>
+        <button type="button" class="edition-card" id="btn-edition-general" onclick="selectEdition('general')">
+          <span class="edition-icon">🌐</span>
+          <span class="edition-name">Edición General</span>
+          <span class="edition-desc">Historia, Perú, Ciencia, Música, Cultura Pop</span>
+        </button>
+      </div>
+
+      <div id="team-setup" class="team-setup">
+        <div class="team-inputs" id="team-inputs">
+           <input type="text" id="team-name-0" class="team-input" placeholder="Nombre Equipo 1" value="Equipo 1">
+           <input type="text" id="team-name-1" class="team-input" placeholder="Nombre Equipo 2" value="Equipo 2">
+           <input type="text" id="team-name-2" class="team-input" placeholder="Nombre Equipo 3" value="Equipo 3" style="display:none;">
+        </div>
+        <div class="team-selection">
+          <button class="btn btn-secondary" id="toggle-teams-btn" onclick="toggleTeams()">Usar 3 Equipos</button>
+          <button class="btn btn-primary" onclick="startGame()">Comenzar Juego</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game Screen -->
+  <div id="game-screen" class="screen">
+    <header class="game-header">
+      <div class="header-top">
+        <h2 id="round-title">Ronda 1</h2>
+        <span id="edition-badge" class="edition-badge">📖 EDICIÓN BÍBLICA</span>
+      </div>
+      <h3 id="turn-indicator" class="turn-indicator">Turno de: Equipo 1</h3>
+      <div id="board-powerups" class="powerups-container" style="margin-top: 1rem; margin-bottom: 0;">
+         <button class="btn btn-powerup" id="btn-pre-double" onclick="usePrePowerUp('double')">⚡ 2x Duplicar</button>
+         <button class="btn btn-powerup" id="btn-pre-shield" onclick="usePrePowerUp('shield')">🛡️ Escudo</button>
+         <button class="btn btn-secondary" onclick="restartGame()" style="margin-left: auto; background-color: #e74c3c;">Reiniciar</button>
+      </div>
+    </header>
+
+    <div class="board-container">
+      <div id="jeopardy-board" class="board">
+        <!-- Generated dynamically via JS -->
+      </div>
+    </div>
+
+    <div class="scores-container" id="scores-container">
+      <!-- Generated dynamically via JS -->
+    </div>
+  </div>
+
+  <!-- Modal Overlay for Question View / Answer View -->
+  <div id="modal-overlay" class="modal-overlay">
+    <div class="modal-content">
+      <div id="modal-question" class="modal-view">
+        <h2 id="question-text" class="question-text">Pregunta...</h2>
+        
+        <div id="powerups-container" class="powerups-container">
+            <button class="btn btn-powerup" id="btn-powerup-hint" onclick="usePowerUp('hint')">💡 Pista</button>
+            <button class="btn btn-powerup" id="btn-powerup-time" onclick="usePowerUp('time')">⏱️ +15s Tiempo Extra</button>
+        </div>
+        <div id="hint-display" class="hint-display" style="display: none;"></div>
+        <div id="numeric-timer" class="numeric-timer">30</div>
+        <div id="timer-bar" class="timer-bar"><div class="timer-fill"></div></div>
+        <button class="btn btn-secondary mt-2" onclick="showAnswer()">Ver Respuesta</button>
+      </div>
+
+      <div id="modal-answer" class="modal-view">
+        <h2 id="answer-text" class="answer-text">Respuesta...</h2>
+        <p class="scoring-instructions" id="scoring-instructions">Asigna puntos al equipo en turno (o a quien robe el rebote):</p>
+        <div class="scoring-buttons" id="scoring-buttons">
+          <!-- Dynamically populated with scoring controls -->
+        </div>
+        <button class="btn btn-primary mt-2" onclick="closeModal()">Continuar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Final Jeopardy Modal Overlay -->
+  <div id="final-modal-overlay" class="modal-overlay">
+    <div class="modal-content">
+        <h2 class="final-title">JEOPARDY FINAL</h2>
+        <h3 id="final-category" class="final-category">Categoría...</h3>
+        
+        <div id="final-wagers-view" class="modal-view active">
+            <p>Hagan sus apuestas (En secreto)</p>
+            <div id="final-wager-inputs" class="final-wager-inputs">
+                <!-- Inputs for each team -->
+            </div>
+            <button class="btn btn-secondary mt-2" onclick="submitFinalWagers()">Revelar Pregunta Final</button>
+        </div>
+
+        <div id="final-question-view" class="modal-view">
+            <h2 id="final-question-text" class="question-text">Pregunta...</h2>
+            <button class="btn btn-secondary mt-2" onclick="showFinalAnswer()">Ver Respuesta</button>
+        </div>
+
+        <div id="final-answer-view" class="modal-view">
+            <h2 id="final-answer-text" class="answer-text">Respuesta...</h2>
+            <p>Marca quién acertó:</p>
+            <div class="scoring-buttons" id="final-scoring-buttons">
+              <!-- Dynamically populated checkboxes for correct teams -->
+            </div>
+            <button class="btn btn-primary mt-2" onclick="finishGame()">Ver Ganador</button>
+        </div>
+
+        <div id="winner-view" class="modal-view">
+            <h1 class="winner-title" id="winner-text">¡Gana el Equipo!</h1>
+            <button class="btn btn-primary mt-2" onclick="restartGame(true)">Jugar de Nuevo</button>
+        </div>
+    </div>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="audio.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
