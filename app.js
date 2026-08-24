@@ -14,9 +14,9 @@ let currentTurn = 0;
 // Tracks which powerups each team has USED (true = used)
 let teamPowerUps = [];
 // Pending powerups clicked before selecting a question
-let pendingPowerUps = { double: false, shield: false };
+let pendingPowerUps = { double: false, triple: false, shield: false };
 // Tracks which powerups are active for the CURRENT question
-let activePowerUps = { double: false, shield: false };
+let activePowerUps = { double: false, triple: false, shield: false };
 
 let playedCards = [];
 
@@ -36,6 +36,35 @@ function selectEdition(editionKey) {
         btnBiblica.classList.remove('active');
         titleEdition.innerText = 'GENERAL';
         titleEdition.style.color = '#38bdf8';
+    }
+}
+
+function changeTeamsCount(delta) {
+    numTeams += delta;
+    if (numTeams < 1) numTeams = 1;
+    if (numTeams > 8) numTeams = 8;
+    document.getElementById('teams-count-display').innerText = numTeams;
+    renderTeamInputs();
+}
+
+function renderTeamInputs() {
+    const container = document.getElementById('team-inputs');
+    if (!container) return;
+    
+    // Save existing input values if any
+    const existingValues = [];
+    for (let i = 0; i < 8; i++) {
+        const input = document.getElementById(`team-name-${i}`);
+        if (input) existingValues.push(input.value);
+        else existingValues.push(`Equipo ${i+1}`);
+    }
+
+    container.innerHTML = '';
+    for (let i = 0; i < numTeams; i++) {
+        const val = existingValues[i] || `Equipo ${i+1}`;
+        container.innerHTML += `
+            <input type="text" id="team-name-${i}" class="team-input" placeholder="Nombre Equipo ${i+1}" value="${val}">
+        `;
     }
 }
 
@@ -70,12 +99,17 @@ function restartGame(force = false) {
 }
 
 window.onload = function() {
+    renderTeamInputs();
+    
     const savedState = loadGameState();
     if (savedState) {
         selectedEdition = savedState.selectedEdition || 'biblica';
         selectEdition(selectedEdition);
 
-        numTeams = savedState.numTeams;
+        numTeams = savedState.numTeams || 2;
+        document.getElementById('teams-count-display').innerText = numTeams;
+        renderTeamInputs();
+
         teamNames = savedState.teamNames;
         scores = savedState.scores;
         currentRound = savedState.currentRound;
@@ -85,11 +119,6 @@ window.onload = function() {
         
         document.getElementById('start-screen').classList.remove('active');
         document.getElementById('game-screen').classList.add('active');
-        
-        if (numTeams === 3) {
-            document.getElementById('team-name-2').style.display = 'block';
-            document.getElementById('toggle-teams-btn').innerText = 'Usar 2 Equipos';
-        }
         
         updateEditionBadge();
         setupRound(currentRound);
@@ -119,20 +148,6 @@ const answerText = document.getElementById('answer-text');
 const timerFill = document.querySelector('.timer-fill');
 const hintDisplay = document.getElementById('hint-display');
 
-function toggleTeams() {
-    const input3 = document.getElementById('team-name-2');
-    const btn = document.getElementById('toggle-teams-btn');
-    if (input3.style.display === 'none') {
-        input3.style.display = 'block';
-        btn.innerText = 'Usar 2 Equipos';
-        numTeams = 3;
-    } else {
-        input3.style.display = 'none';
-        btn.innerText = 'Usar 3 Equipos';
-        numTeams = 2;
-    }
-}
-
 function updateEditionBadge() {
     if (selectedEdition === 'biblica') {
         editionBadge.innerHTML = '📖 EDICIÓN BÍBLICA';
@@ -146,7 +161,6 @@ function updateEditionBadge() {
 }
 
 function startGame() {
-    // Init Audio Context (needs user interaction)
     if(typeof audioCtx !== 'undefined' && audioCtx.state === 'suspended') {
         audioCtx.resume();
     }
@@ -154,12 +168,12 @@ function startGame() {
     clearGameState();
     playedCards = [];
     
-    numTeams = document.getElementById('team-name-2').style.display === 'none' ? 2 : 3;
     teamNames = [];
     teamPowerUps = [];
     for(let i=0; i<numTeams; i++) {
-        teamNames.push(document.getElementById(`team-name-${i}`).value || `Equipo ${i+1}`);
-        teamPowerUps.push({ double: false, shield: false, hint: false, time: false });
+        const inputVal = document.getElementById(`team-name-${i}`).value;
+        teamNames.push(inputVal || `Equipo ${i+1}`);
+        teamPowerUps.push({ double: false, triple: false, shield: false, hint: false });
     }
     
     scores = new Array(numTeams).fill(0);
@@ -187,14 +201,21 @@ function renderScores() {
     turnIndicator.innerText = `Turno de: ${teamNames[currentTurn]}`;
     
     const btnPreDouble = document.getElementById('btn-pre-double');
+    const btnPreTriple = document.getElementById('btn-pre-triple');
     const btnPreShield = document.getElementById('btn-pre-shield');
-    if (btnPreDouble && btnPreShield && teamPowerUps.length > 0) {
+
+    if (btnPreDouble && btnPreTriple && btnPreShield && teamPowerUps.length > 0) {
         btnPreDouble.className = 'btn btn-powerup';
+        btnPreTriple.className = 'btn btn-powerup';
         btnPreShield.className = 'btn btn-powerup';
         
-        if (teamPowerUps[currentTurn].double) btnPreDouble.classList.add('disabled');
-        if (teamPowerUps[currentTurn].shield) btnPreShield.classList.add('disabled');
+        const curPowerUps = teamPowerUps[currentTurn];
+        if (curPowerUps.double) btnPreDouble.classList.add('disabled');
+        if (curPowerUps.triple) btnPreTriple.classList.add('disabled');
+        if (curPowerUps.shield) btnPreShield.classList.add('disabled');
+
         if (pendingPowerUps.double) btnPreDouble.classList.add('active');
+        if (pendingPowerUps.triple) btnPreTriple.classList.add('active');
         if (pendingPowerUps.shield) btnPreShield.classList.add('active');
     }
 }
@@ -268,6 +289,17 @@ function usePrePowerUp(type) {
         btn.classList.remove('active');
         pendingPowerUps[type] = false;
     } else {
+        // Double and Triple are mutually exclusive
+        if (type === 'double') {
+            pendingPowerUps.triple = false;
+            const btnT = document.getElementById('btn-pre-triple');
+            if (btnT) btnT.classList.remove('active');
+        } else if (type === 'triple') {
+            pendingPowerUps.double = false;
+            const btnD = document.getElementById('btn-pre-double');
+            if (btnD) btnD.classList.remove('active');
+        }
+
         btn.classList.add('active');
         pendingPowerUps[type] = true;
         sounds.boardFill();
@@ -287,18 +319,18 @@ function showQuestionView() {
     
     // Transfer pending powerups to active
     activePowerUps.double = pendingPowerUps.double;
+    activePowerUps.triple = pendingPowerUps.triple;
     activePowerUps.shield = pendingPowerUps.shield;
     
     // Commit the usage globally if transferred
     if (pendingPowerUps.double) teamPowerUps[currentTurn].double = true;
+    if (pendingPowerUps.triple) teamPowerUps[currentTurn].triple = true;
     if (pendingPowerUps.shield) teamPowerUps[currentTurn].shield = true;
     
     // Reset pending
-    pendingPowerUps = { double: false, shield: false };
+    pendingPowerUps = { double: false, triple: false, shield: false };
     
     saveGameState();
-    
-    // Update board buttons
     renderScores();
     
     hintDisplay.style.display = 'none';
@@ -308,17 +340,13 @@ function showQuestionView() {
     const btnHint = document.getElementById('btn-powerup-hint');
     if (btnHint) {
         btnHint.className = 'btn btn-powerup';
+        if (selectedEdition === 'biblica') {
+            btnHint.innerText = '💡 Pista (Cita Bíblica)';
+        } else {
+            btnHint.innerText = '💡 Pista';
+        }
         if (teamPowerUps[currentTurn].hint || !currentQuestion.hint) {
             btnHint.classList.add('disabled');
-        }
-    }
-
-    // Update Extra Time Button UI
-    const btnTime = document.getElementById('btn-powerup-time');
-    if (btnTime) {
-        btnTime.className = 'btn btn-powerup';
-        if (teamPowerUps[currentTurn].time) {
-            btnTime.classList.add('disabled');
         }
     }
     
@@ -339,15 +367,8 @@ function usePowerUp(type) {
             btn.classList.add('active');
             teamPowerUps[currentTurn].hint = true;
             hintDisplay.style.display = 'block';
-            hintDisplay.innerText = `💡 Pista: ${currentQuestion.hint}`;
-            sounds.dailyDouble();
-        }
-    } else if (type === 'time') {
-        if (!teamPowerUps[currentTurn].time) {
-            btn.classList.add('disabled');
-            teamPowerUps[currentTurn].time = true;
-            timeLeft += 15;
-            document.getElementById('numeric-timer').innerText = timeLeft;
+            const label = selectedEdition === 'biblica' ? '📖 Cita Bíblica' : '💡 Pista';
+            hintDisplay.innerText = `${label}: ${currentQuestion.hint}`;
             sounds.dailyDouble();
         }
     }
@@ -386,7 +407,6 @@ function showAnswer() {
     const buttonsContainer = document.getElementById('scoring-buttons');
     buttonsContainer.innerHTML = '';
     
-    // We show scoring buttons for all teams to support Rebounds.
     for(let i=0; i<numTeams; i++) {
         let isTurn = (i === currentTurn);
         let turnLabel = isTurn ? "(En Turno)" : "(Rebote)";
@@ -410,24 +430,24 @@ function handleScore(teamIdx, isCorrect) {
     if (isCorrect) {
         sounds.correct();
         amount = currentQuestion.points;
-        if (isTurn && activePowerUps.double) {
+        if (isTurn && activePowerUps.triple) {
+            amount *= 3;
+        } else if (isTurn && activePowerUps.double) {
             amount *= 2;
         }
         updateScore(teamIdx, amount);
         
-        // Disable all buttons once scored correct
         document.querySelectorAll('.team-score-controls button').forEach(b => b.disabled = true);
     } else {
         sounds.wrong();
         amount = currentQuestion.points;
         
         if (isTurn && activePowerUps.shield) {
-            amount = 0; // Shield prevents loss
+            amount = 0; // Shield protects against point deduction
         }
         
         updateScore(teamIdx, -amount);
         
-        // Disable only this team's buttons so others can rebound
         const group = document.querySelectorAll('.team-score-controls')[teamIdx];
         if(group) {
             group.querySelectorAll('button').forEach(b => b.disabled = true);
@@ -438,7 +458,6 @@ function handleScore(teamIdx, isCorrect) {
 function closeModal() {
     modalOverlay.classList.remove('active');
     
-    // Advance turn
     currentTurn = (currentTurn + 1) % numTeams;
     renderScores();
     saveGameState();
@@ -504,7 +523,7 @@ function showFinalAnswer() {
     checkboxes.innerHTML = '';
     for(let i=0; i<numTeams; i++) {
         checkboxes.innerHTML += `
-            <label style="display:block; margin: 1rem; font-size: 1.5rem;">
+            <label style="display:block; margin: 0.8rem; font-size: 1.3rem;">
                 <input type="checkbox" id="final-correct-${i}"> ¿${teamNames[i]} Correcto?
             </label>
         `;
