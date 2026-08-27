@@ -571,15 +571,65 @@ function closeModal() {
     checkRoundEnd();
 }
 
+function renderLeaderboard(containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    let list = [];
+    for (let i = 0; i < numTeams; i++) {
+        list.push({
+            name: teamNames[i],
+            score: scores[i],
+            idx: i
+        });
+    }
+
+    list.sort((a, b) => b.score - a.score);
+    container.innerHTML = '';
+
+    const medals = ['🥇', '🥈', '🥉'];
+
+    list.forEach((item, index) => {
+        const rankLabel = medals[index] || `#${index + 1}`;
+        const rankClass = index < 3 ? `rank-${index + 1}` : '';
+        const scoreClass = item.score < 0 ? 'negative' : '';
+
+        container.innerHTML += `
+            <div class="leaderboard-item ${rankClass}">
+                <div class="leaderboard-rank">${rankLabel}</div>
+                <div class="leaderboard-name">${item.name}</div>
+                <div class="leaderboard-score ${scoreClass}">${item.score} pts</div>
+            </div>
+        `;
+    });
+}
+
 function checkRoundEnd() {
     const unplayedCards = document.querySelectorAll('.card:not(.played)');
     if (unplayedCards.length === 0) {
         if (currentRound === 1) {
-            setupRound(2);
+            showRoundTransitionModal();
         } else {
             setupFinalJeopardy();
         }
     }
+}
+
+function showRoundTransitionModal() {
+    renderLeaderboard('round-transition-leaderboard');
+    const transitionOverlay = document.getElementById('round-transition-modal-overlay');
+    if (transitionOverlay) {
+        transitionOverlay.classList.add('active');
+    }
+    sounds.dailyDouble();
+}
+
+function startNextRound() {
+    const transitionOverlay = document.getElementById('round-transition-modal-overlay');
+    if (transitionOverlay) {
+        transitionOverlay.classList.remove('active');
+    }
+    setupRound(2);
 }
 
 // ================= FINAL JEOPARDY =================
@@ -683,6 +733,9 @@ function finishGame() {
     }
     
     document.getElementById('winner-text').innerText = `¡Gana: ${winners.join(', ')} con ${maxScore} puntos!`;
+    
+    renderLeaderboard('final-leaderboard');
+
     sounds.correct();
     setTimeout(() => sounds.correct(), 500);
     setTimeout(() => sounds.correct(), 1000);

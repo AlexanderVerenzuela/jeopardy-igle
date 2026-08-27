@@ -108,6 +108,20 @@
     </div>
   </div>
 
+  <!-- Round Transition Modal Overlay -->
+  <div id="round-transition-modal-overlay" class="modal-overlay">
+    <div class="modal-content">
+      <h1 class="winner-title" id="transition-title">¡FIN DE LA RONDA 1!</h1>
+      <p class="subtitle" style="font-size: 1.3rem; color: var(--gold); margin-bottom: 1.5rem;">Tabla de Posiciones Acumulada</p>
+
+      <div id="round-transition-leaderboard" class="leaderboard-container">
+        <!-- Dynamically populated leaderboard -->
+      </div>
+
+      <button class="btn btn-primary mt-2" onclick="startNextRound()">Comenzar Ronda 2 🚀</button>
+    </div>
+  </div>
+
   <!-- Final Jeopardy Modal Overlay -->
   <div id="final-modal-overlay" class="modal-overlay">
     <div class="modal-content">
@@ -150,8 +164,15 @@
 
         <!-- Step 5: Winner Screen -->
         <div id="winner-view" class="modal-view">
-            <h1 class="winner-title" id="winner-text">¡Gana el Equipo!</h1>
-            <button class="btn btn-primary mt-2" onclick="restartGame(true)">Jugar de Nuevo</button>
+            <div style="font-size: 3.5rem; margin-bottom: 0.3rem;">🏆</div>
+            <h1 class="winner-title" id="winner-text" style="font-size: 2.5rem; margin-bottom: 0.5rem;">¡Gana el Equipo!</h1>
+            <p class="subtitle" style="font-size: 1.2rem; color: var(--gold); margin-bottom: 1rem;">Tabla de Posiciones Final</p>
+
+            <div id="final-leaderboard" class="leaderboard-container">
+              <!-- Dynamically populated final leaderboard -->
+            </div>
+
+            <button class="btn btn-primary mt-2" onclick="restartGame(true)">Jugar de Nuevo 🔄</button>
         </div>
     </div>
   </div>

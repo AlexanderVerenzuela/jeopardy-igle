@@ -100,7 +100,7 @@ const gameData = {
           { points: 400, question: "¿En qué festividad descendió el Espíritu Santo como lenguas de fuego sobre los creyentes en el aposento alto?", answer: "Pentecostés", hint: "Hechos 2:1-4", options: ["Pentecostés", "Pascua", "Fiesta de los Tabernáculos", "Día de la Expiación"] },
           { points: 600, question: "En la Santa Cena o Cena del Señor, ¿qué representa el pan que Jesús partió y dio a sus discípulos?", answer: "El cuerpo de Cristo entregado por nosotros", hint: "1 Corintios 11:23-26", options: ["El cuerpo de Cristo entregado por nosotros", "La sangre del nuevo pacto", "El maná del desierto", "El perdón de los pecados"] },
           { points: 800, question: "¿Qué profeta del Antiguo Testamento escribió la promesa divina: 'Y os daré corazón nuevo, y pondré espíritu nuevo dentro de vosotros'?", answer: "Ezequiel", hint: "Ezequiel 36:26", options: ["Ezequiel", "Jeremías", "Isaías", "Daniel"] },
-          { points: 500, question: "¿Qué nombre hebreo dado a Dios en Génesis 16 por Agar significa 'El Dios que me ve'?", answer: "El Roi", hint: "Génesis 16:13", options: ["El Roi", "El Shaddai", "Jehová Jireh", "Adonai"] }
+          { points: 1000, question: "¿Qué nombre hebreo dado a Dios en Génesis 16 por Agar significa 'El Dios que me ve'?", answer: "El Roi", hint: "Génesis 16:13", options: ["El Roi", "El Shaddai", "Jehová Jireh", "Adonai"] }
         ]
       }
     ],
