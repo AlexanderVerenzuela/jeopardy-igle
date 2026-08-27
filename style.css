@@ -664,6 +664,69 @@ body {
   font-weight: bold;
 }
 
+.options-display {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.8rem;
+  width: 100%;
+  margin-bottom: 1.2rem;
+}
+
+.option-card {
+  background: rgba(0, 0, 0, 0.6);
+  border: 2px solid rgba(255, 215, 0, 0.5);
+  color: #fff;
+  padding: 0.8rem 1rem;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  font-family: var(--font-main);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  text-align: left;
+}
+
+.option-card:hover:not(:disabled) {
+  background: rgba(255, 215, 0, 0.2);
+  border-color: var(--gold);
+  transform: translateY(-2px);
+  box-shadow: 0 0 12px var(--gold-glow);
+}
+
+.option-card.option-correct {
+  background: rgba(16, 185, 129, 0.3) !important;
+  border-color: var(--correct) !important;
+  color: #fff !important;
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
+}
+
+.option-card.option-wrong {
+  background: rgba(239, 68, 68, 0.3) !important;
+  border-color: var(--wrong) !important;
+  color: #fff !important;
+}
+
+.option-card:disabled {
+  cursor: default;
+}
+
+.option-letter {
+  background: var(--gold);
+  color: #000;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: 900;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
 /* ================= RESPONSIVE DESIGN ================= */
 @media (max-width: 768px) {
   .game-title { font-size: 2.8rem; }
@@ -692,6 +755,7 @@ body {
   
   .scoring-buttons { flex-direction: column; gap: 0.8rem; }
   .powerups-container { flex-wrap: wrap; }
+  .options-display { grid-template-columns: 1fr; }
   .final-category-options { flex-direction: column; gap: 0.8rem; }
   .final-cat-card { width: 100%; min-width: unset; padding: 1rem; }
 }

@@ -173,7 +173,7 @@ function startGame() {
     for(let i=0; i<numTeams; i++) {
         const inputVal = document.getElementById(`team-name-${i}`).value;
         teamNames.push(inputVal || `Equipo ${i+1}`);
-        teamPowerUps.push({ double: false, triple: false, shield: false, hint: false });
+        teamPowerUps.push({ double: false, triple: false, shield: false, hint: false, options: false });
     }
     
     scores = new Array(numTeams).fill(0);
@@ -336,6 +336,12 @@ function showQuestionView() {
     hintDisplay.style.display = 'none';
     hintDisplay.innerText = '';
     
+    const optionsDisplay = document.getElementById('options-display');
+    if (optionsDisplay) {
+        optionsDisplay.style.display = 'none';
+        optionsDisplay.innerHTML = '';
+    }
+    
     // Update Hint Button UI
     const btnHint = document.getElementById('btn-powerup-hint');
     if (btnHint) {
@@ -347,6 +353,15 @@ function showQuestionView() {
         }
         if (teamPowerUps[currentTurn].hint || !currentQuestion.hint) {
             btnHint.classList.add('disabled');
+        }
+    }
+    
+    // Update Options Button UI
+    const btnOptions = document.getElementById('btn-powerup-options');
+    if (btnOptions) {
+        btnOptions.className = 'btn btn-powerup';
+        if (!teamPowerUps[currentTurn] || teamPowerUps[currentTurn].options) {
+            btnOptions.classList.add('disabled');
         }
     }
     
@@ -371,8 +386,99 @@ function usePowerUp(type) {
             hintDisplay.innerText = `${label}: ${currentQuestion.hint}`;
             sounds.dailyDouble();
         }
+    } else if (type === 'options') {
+        btn.classList.add('active');
+        btn.classList.add('disabled');
+        teamPowerUps[currentTurn].options = true;
+        
+        const optionsDisplay = document.getElementById('options-display');
+        if (optionsDisplay) {
+            const optionsList = getQuestionOptions(currentQuestion);
+            const letters = ['A', 'B', 'C', 'D'];
+            optionsDisplay.style.display = 'grid';
+            optionsDisplay.innerHTML = '';
+            
+            optionsList.forEach((optText, idx) => {
+                const letter = letters[idx];
+                const card = document.createElement('button');
+                card.className = 'option-card';
+                card.type = 'button';
+                card.innerHTML = `<span class="option-letter">${letter}</span> <span class="option-text">${optText}</span>`;
+                card.onclick = () => selectOptionChoice(card, optText, currentQuestion.answer, optionsDisplay);
+                optionsDisplay.appendChild(card);
+            });
+        }
+        sounds.dailyDouble();
     }
     saveGameState();
+}
+
+function shuffleArray(arr) {
+    const array = [...arr];
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
+function getQuestionOptions(q) {
+    if (q.options && Array.isArray(q.options) && q.options.length >= 4) {
+        return shuffleArray(q.options);
+    }
+    
+    let pool = [];
+    const roundData = gameData[selectedEdition]['round' + currentRound];
+    if (roundData) {
+        roundData.forEach(cat => {
+            cat.questions.forEach(item => {
+                if (item.answer && item.answer !== q.answer && !pool.includes(item.answer)) {
+                    pool.push(item.answer);
+                }
+            });
+        });
+    }
+    
+    pool = shuffleArray(pool);
+    let distractors = pool.slice(0, 3);
+    
+    const defaults = ["Ninguno de los anteriores", "Opción A", "Opción B", "Todas las anteriores"];
+    for (let d of defaults) {
+        if (distractors.length < 3 && !distractors.includes(d) && d !== q.answer) {
+            distractors.push(d);
+        }
+    }
+    
+    let result = [q.answer, ...distractors];
+    return shuffleArray(result);
+}
+
+function selectOptionChoice(selectedCard, chosenText, correctAnswer, container) {
+    const allCards = container.querySelectorAll('.option-card');
+    allCards.forEach(c => c.disabled = true);
+    
+    const isCorrect = isAnswerMatch(chosenText, correctAnswer);
+    
+    if (isCorrect) {
+        selectedCard.classList.add('option-correct');
+        sounds.correct();
+    } else {
+        selectedCard.classList.add('option-wrong');
+        sounds.wrong();
+        allCards.forEach(c => {
+            const txt = c.querySelector('.option-text').innerText;
+            if (isAnswerMatch(txt, correctAnswer)) {
+                c.classList.add('option-correct');
+            }
+        });
+    }
+}
+
+function isAnswerMatch(optionText, correctAnswer) {
+    if (!optionText || !correctAnswer) return false;
+    const cleanOpt = optionText.trim().toLowerCase();
+    const cleanAns = correctAnswer.trim().toLowerCase();
+    return cleanOpt === cleanAns || cleanAns.includes(cleanOpt) || cleanOpt.includes(cleanAns);
 }
 
 function startTimer() {
